@@ -1,0 +1,203 @@
+Consultas misterio SQL
+
+info que se: 
+-fue un asesinato cerca del 15 de enero en SQL City
+
+1-SELECT * FROM crime_scene_report;
+
+2-select * from crime_scene_report
+WHERE date = "20180115"
+
+esta consulta me da varios crímenes ese día pero solo un asesinato en SQL City por lo que ese es el reporte que necesito.
+
+Reporte del crimen: "Security footage shows that there were 2 witnesses. The first witness lives at the last house on "Northwestern Dr". The second witness, named Annabel, lives somewhere on "Franklin Ave"."
+
+3- select * from person
+WHERE name = "Annabel" and address_street_name ="Franklin Ave"
+
+Esta consulta no me devuelve nada porque en "name" esta el nombre completo(nombre y apellido).
+
+4-select * from person
+WHERE address_street_name ="Franklin Ave"
+
+buscando a todas las personas que viven en esa calle encontré que solo hay una "Annabel". 
+Estos son sus datos:
+16371	Annabel Miller	490173	103	Franklin Ave	318771143
+
+
+5-select transcript from interview
+  WHERE person_id = 16371
+
+
+esto es lo que dijo Annabel en su interrogatorio: "I saw the murder happen, and I recognized the killer from my gym when I was working out last week on January the 9th."
+
+6-select * from get_fit_now_member
+WHERE name ="Annabel Miller"
+
+estos son los datos de la membresia de gym de Annabel: 
+90081	16371	  Annabel Miller	20160208	        gold
+id      person_id name                  membership_start_date	membership_status
+
+6-select * from get_fit_now_check_in
+WHERE membership_id = 90081
+
+90081	20180109	1600	1700
+
+Annabel estuvo el dia que ella dijo en el gym 
+
+7- select * from get_fit_now_check_in
+WHERE check_in_date = "20180109" and check_in_time = 1600 
+
+Annabel solo coincidió con una persona en el gym.
+48Z7A	        20180109	1600	      1730
+membership_id   checkin_date    checkin_time  checkout_time
+
+
+8-elect * from get_fit_now_member
+WHERE id = "48Z7A"
+
+id	person_id	name	        membership_start_date	membership_status
+48Z7A	28819	        Joe Germuska	20160305	        gold
+
+esa es la persona que Annabel reconoció.
+
+9-select transcript from interview
+WHERE person_id = 28819
+
+Joe no fue interrogado.
+
+por ahora de Annabel no puedo sacar mas información, voy a intentar descubrir quien es el otro testigo.
+
+10- select * from person
+WHERE address_street_name = "Northwestern Dr"
+
+el que vive en la ultima casa es :
+id	name	        license_id	address_number	address_street_name	ssn
+14887	Morty Schapiro	118009	        4919	        Northwestern Dr	        111564949
+
+
+11- select transcript from interview
+WHERE person_id = 14887
+
+transcript
+"I heard a gunshot and then saw a man run out. He had a "Get Fit Now Gym" bag. The membership number on the bag started with "48Z". Only gold members have those bags. The man got into a car with a plate that included "H42W"."
+
+
+Lo que me dijo Annabel me llevo a Joe Germuska. voy a ver si Joe tiene un auto que su pantente empiece con los datos que me dijo Morty Schapiro.
+
+
+12- select * from drivers_license
+where plate_number LIKE "%H42W%"
+
+hay tres autos que tienen esos 4 caracteres en  la patente, voy a buscar de quienes son:
+
+id	age	height	eye_color	hair_color	gender	plate_number	car_make	car_model
+183779	21	65	blue	        blonde	        female	H42W0X	        Toyota	        Prius
+423327	30	70	brown	        brown	        male	0H42W2	        Chevrolet	Spark LS
+664760	21	71	black	        black	        male	4H42WR	        Nissan	        Altima
+
+
+13- select * from person 
+WHERE license_id = 664760
+
+id	name	        license_id	address_number	address_street_name	ssn
+51739	Tushar Chandra	664760	        312	        Phi St	                137882671
+
+
+14-select * from person 
+WHERE license_id = 423327
+
+
+id	name	        license_id	address_number	address_street_name	ssn
+67318	Jeremy Bowers	423327	        530	        Washington Pl, Apt 3A	871539279
+
+
+15-select * from person 
+WHERE license_id = 183779
+
+id	name	        license_id	address_number	address_street_name	ssn
+78193	Maxine Whitely	183779	        110	        Fisk Rd	                137882671
+
+
+
+voy a ver quien tiene una membresia gold  en el gimnasio
+
+
+select * from get_fit_now_member 
+WHERE person_id = 67318
+
+id	person_id	name		membership_start_date	membership_status
+48Z55	67318	        Jeremy Bowers	20160101	        gold
+
+Jeremy Bowers tiene un auto con la patente que dijo Morty y también tiene una membresia gold que empieza con 48Z como dijo Morty. Por eso creo que el puede ser el asesino. 
+
+16-INSERT INTO solution VALUES (1, 'Jeremy Bowers');
+        
+   SELECT value FROM solution;
+
+"Congrats, you found the murderer! But wait, there's more... If you think you're up for a challenge, try querying the interview transcript of the murderer to find the real villain behind this crime. If you feel especially confident in your SQL skills, try to complete this final step with no more than 2 queries. Use this same INSERT statement with your new suspect to check your answer."
+
+Jeremy era el asesino
+
+17-select * from interview
+where person_id = 67318
+
+transcript
+I was hired by a woman with a lot of money. I don't know her name but I know she's around 5'5" (65") or 5'7" (67"). She has red hair and she drives a Tesla Model S. I know that she attended the SQL Symphony Concert 3 times in December 2017.
+
+
+
+18-select * from drivers_license 
+where car_make = "Tesla" and car_model = "Model S" and hair_color ="red" and gender = "female"
+
+
+id	age	height	eye_color	hair_color	gender	plate_number	car_make	car_model
+202298	68	66	green		red		female	500123		Tesla		Model S
+291182	65	66	blue		red		female	08CM64		Tesla		Model S
+918773	48	65	black		red		female	917UU3		Tesla		Model S
+
+
+una de esas tres mujeres contrato a Jeremy
+
+19-
+select * from person
+where license_id = 918773
+
+id	name		license_id	address_number	address_street_name	ssn
+78881	Red Korb	918773		107		Camerata Dr		961388910
+
+
+select * from person
+where license_id = 291182
+
+
+id	name		license_id	address_number	address_street_name	ssn
+90700	Regina George	291182		332		Maple Ave		337169072
+
+
+select * from person
+where license_id = 202298
+
+id	name			license_id	address_number	address_street_name	ssn
+99716	Miranda Priestly	202298		1883		Golden Ave		987756388
+
+
+20-select * from facebook_event_checkin
+where event_name = "SQL Symphony Concert" and date like "201712%" and person_id = 99716 or person_id = 90700 or person_id = 78881
+
+person_id	event_id	event_name		date
+99716		1143		SQL Symphony Concert	20171206
+99716		1143		SQL Symphony Concert	20171212
+99716		1143		SQL Symphony Concert	20171229
+
+
+
+La persona que le pago a Jeremy por el asesinato es Miranda Priestly
+
+
+INSERT INTO solution VALUES (1, 'Miranda Priestly');
+        
+SELECT value FROM solution;
+
+value
+Congrats, you found the brains behind the murder! Everyone in SQL City hails you as the greatest SQL detective of all time. Time to break out the champagne!
